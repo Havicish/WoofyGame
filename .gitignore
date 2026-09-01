@@ -1,0 +1,11 @@
+# Godot 4+
+.godot/
+/android/
+
+# Local/editor artifacts
+.DS_Store
+.vscode/
+
+# Dependencies and build outputs
+node_modules/
+Vamps.app/

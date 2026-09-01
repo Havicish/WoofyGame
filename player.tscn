@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://c4x2lrk3loacf"]
+
+[ext_resource type="Texture2D" uid="uid://b1ebvnpdt8ytd" path="res://Sprites/PlayerTest (1).png" id="1_i3pqv"]
+[ext_resource type="Script" uid="uid://ck4xmyisjy6id" path="res://Scripts/player.gd" id="2_hqtel"]
+[ext_resource type="Texture2D" uid="uid://dkdaghjy5ddak" path="res://Sprites/PlayerTestClothes.png" id="3_sweqy"]
+
+[node name="Player" type="Sprite2D" unique_id=1945730246]
+z_index = 5
+texture_filter = 1
+scale = Vector2(2.1, 2.1)
+texture = ExtResource("1_i3pqv")
+script = ExtResource("2_hqtel")
+clothes_color = Color(1, 0, 0, 1)
+
+[node name="Clothes" type="Sprite2D" parent="." unique_id=673516004]
+modulate = Color(0, 0.69411767, 1, 1)
+texture_filter = 1
+texture = ExtResource("3_sweqy")
+
+[node name="Shadow" type="Sprite2D" parent="." unique_id=1280166083]
+modulate = Color(0, 0, 0, 0.5019608)
+z_index = 4
+z_as_relative = false
+position = Vector2(1, 1)
+texture = ExtResource("1_i3pqv")

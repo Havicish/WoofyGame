@@ -1,0 +1,510 @@
+[gd_scene format=3 uid="uid://bncn8qkqx7fuh"]
+
+[ext_resource type="Texture2D" uid="uid://c2mka7k7ir620" path="res://Sprites/LeavesGround.png" id="1_pq8d4"]
+[ext_resource type="Texture2D" uid="uid://dgwdspte3ww8b" path="res://Sprites/Leaf.png" id="2_a1ov8"]
+[ext_resource type="Script" uid="uid://beef8p53b74q7" path="res://Scripts/particle_leaves.gd" id="2_jeyxq"]
+[ext_resource type="PackedScene" uid="uid://c4x2lrk3loacf" path="res://player.tscn" id="4_xfv01"]
+[ext_resource type="Texture2D" uid="uid://dfs5jrl8hve73" path="res://Sprites/Border.png" id="6_n7dpw"]
+[ext_resource type="Script" uid="uid://csl25ouiivhig" path="res://Scripts/main_menu.gd" id="7_e6e4d"]
+[ext_resource type="Script" uid="uid://do613m7c08p68" path="res://Scripts/game_manager.gd" id="8_e07m0"]
+[ext_resource type="StyleBox" uid="uid://ijxxcev617cc" path="res://Resources/new_style_box_flat.tres" id="8_ph5s1"]
+[ext_resource type="StyleBox" uid="uid://ce5i84qamekfu" path="res://Resources/new_style_box_flat2.tres" id="9_3u3i7"]
+[ext_resource type="FontFile" uid="uid://bpcpjyjvubtb" path="res://Silkscreen-Regular.ttf" id="9_arjps"]
+[ext_resource type="Script" uid="uid://d03l8ylxirrnk" path="res://Scripts/foot_print_manager.gd" id="9_mx5c3"]
+[ext_resource type="StyleBox" uid="uid://cr44sgfvpe4mg" path="res://Resources/new_style_box_flat3.tres" id="10_h8hc7"]
+[ext_resource type="Script" uid="uid://g0oppy2ovgjs" path="res://Scripts/multiplayer_manager.gd" id="10_mmw6q"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_3h6po"]
+particle_flag_disable_z = true
+angle_min = -720.0
+angle_max = 720.0
+direction = Vector3(-1, 0, 0)
+spread = 0.0
+initial_velocity_max = 167.84
+angular_velocity_min = -720.0
+angular_velocity_max = 343.37997
+gravity = Vector3(-140, 140, 0)
+scale_min = 0.79999995
+scale_max = 1.1999999
+hue_variation_min = -0.020000022
+hue_variation_max = -2.2351742e-08
+turbulence_enabled = true
+turbulence_influence_min = 0.025
+turbulence_influence_max = 0.025
+turbulence_initial_displacement_min = 1.490116e-06
+turbulence_initial_displacement_max = 1.490116e-06
+
+[sub_resource type="LabelSettings" id="LabelSettings_xfv01"]
+font = ExtResource("9_arjps")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_arjps"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.75)
+draw_center = false
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+expand_margin_left = 2.0
+expand_margin_top = 2.0
+expand_margin_right = 2.0
+expand_margin_bottom = 2.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_trbmq"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.24705882, 0.15294118, 0.1882353, 1)
+corner_detail = 5
+
+[sub_resource type="LabelSettings" id="LabelSettings_k2ep7"]
+font = ExtResource("9_arjps")
+font_size = 100
+
+[sub_resource type="LabelSettings" id="LabelSettings_e6e4d"]
+font = ExtResource("9_arjps")
+font_size = 100
+font_color = Color(0, 0, 0, 0.5019608)
+
+[sub_resource type="QuadMesh" id="QuadMesh_3h6po"]
+size = Vector2(0.87, 0.49)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ph5s1"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0, 0, 0, 0.4745098)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[sub_resource type="LabelSettings" id="LabelSettings_arjps"]
+font = ExtResource("9_arjps")
+font_size = 6
+
+[sub_resource type="LabelSettings" id="LabelSettings_3h6po"]
+font = ExtResource("9_arjps")
+font_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3u3i7"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.1, 0.1, 0.1, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+anti_aliasing = false
+
+[node name="Node2D" type="Node2D" unique_id=1257993730]
+
+[node name="Leaves" type="Sprite2D" parent="." unique_id=1293749978]
+modulate = Color(0.65, 0.85999995, 1, 1)
+texture_filter = 1
+texture_repeat = 2
+scale = Vector2(1.4, 1.4)
+texture = ExtResource("1_pq8d4")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 1600, 1600)
+
+[node name="ParticleLeaves" type="Node2D" parent="." unique_id=1373182632]
+script = ExtResource("2_jeyxq")
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="ParticleLeaves" unique_id=89688730]
+z_index = 10
+texture_filter = 1
+position = Vector2(1836, -176)
+scale = Vector2(27.09, 27.09)
+emitting = false
+amount = 100
+texture = ExtResource("2_a1ov8")
+lifetime = 24.130000000000003
+randomness = 1.0
+fixed_fps = 120
+process_material = SubResource("ParticleProcessMaterial_3h6po")
+
+[node name="GPUParticles2D2" type="GPUParticles2D" parent="ParticleLeaves" unique_id=75335188]
+modulate = Color(0, 0, 0, 0.2509804)
+z_index = 9
+texture_filter = 1
+position = Vector2(1840, -172)
+scale = Vector2(27.09, 27.09)
+emitting = false
+amount = 100
+texture = ExtResource("2_a1ov8")
+lifetime = 24.130000000000003
+randomness = 1.0
+fixed_fps = 120
+process_material = SubResource("ParticleProcessMaterial_3h6po")
+
+[node name="Player" parent="." unique_id=1945730246 node_paths=PackedStringArray("camera", "border", "foot_step_node", "game_manager", "multiplayer_manager") instance=ExtResource("4_xfv01")]
+position = Vector2(21, 21)
+camera = NodePath("../Camera2D")
+border = NodePath("../Border")
+foot_step_node = NodePath("../FootPrints")
+game_manager = NodePath("../GameManager")
+multiplayer_manager = NodePath("../MultiplayerManager")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=496060631]
+texture_filter = 1
+zoom = Vector2(6.6, 6.6)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="Camera2D" unique_id=2046636335]
+
+[node name="MainMenu" type="Control" parent="Camera2D/CanvasLayer" unique_id=471586710 node_paths=PackedStringArray("game_manager", "multiplayer_manager")]
+z_index = 101
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("7_e6e4d")
+game_manager = NodePath("../../../GameManager")
+multiplayer_manager = NodePath("../../../MultiplayerManager")
+
+[node name="HostButton" type="Button" parent="Camera2D/CanvasLayer/MainMenu" unique_id=64696919]
+layout_mode = 0
+offset_left = -70.0
+offset_top = -18.0
+offset_right = 70.0
+offset_bottom = 8.0
+theme_override_styles/normal = ExtResource("8_ph5s1")
+theme_override_styles/pressed = ExtResource("9_3u3i7")
+theme_override_styles/hover = ExtResource("10_h8hc7")
+
+[node name="Label" type="Label" parent="Camera2D/CanvasLayer/MainMenu/HostButton" unique_id=1710779104]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Host"
+label_settings = SubResource("LabelSettings_xfv01")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="JoinButton" type="Button" parent="Camera2D/CanvasLayer/MainMenu" unique_id=1571332158]
+layout_mode = 0
+offset_left = -70.0
+offset_top = 18.0
+offset_right = 70.0
+offset_bottom = 44.0
+theme_override_styles/normal = ExtResource("8_ph5s1")
+theme_override_styles/pressed = ExtResource("9_3u3i7")
+theme_override_styles/hover = ExtResource("10_h8hc7")
+
+[node name="Label" type="Label" parent="Camera2D/CanvasLayer/MainMenu/JoinButton" unique_id=1745086875]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Join"
+label_settings = SubResource("LabelSettings_xfv01")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RoomCodeInput" type="LineEdit" parent="Camera2D/CanvasLayer/MainMenu" unique_id=151331991]
+layout_mode = 0
+offset_left = -70.0
+offset_top = 52.0
+offset_right = 70.0
+offset_bottom = 78.0
+theme_override_fonts/font = ExtResource("9_arjps")
+theme_override_styles/focus = SubResource("StyleBoxFlat_arjps")
+placeholder_text = "Room code"
+max_length = 12
+expand_to_text_length = true
+caret_blink = true
+
+[node name="Background" type="Panel" parent="Camera2D/CanvasLayer/MainMenu" unique_id=1506754648]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_trbmq")
+
+[node name="CenterContainer" type="CenterContainer" parent="Camera2D/CanvasLayer/MainMenu" unique_id=616141449]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 128.0
+grow_horizontal = 2
+offset_transform_enabled = true
+offset_transform_position_ratio = Vector2(0, 0.2)
+
+[node name="Title" type="Label" parent="Camera2D/CanvasLayer/MainMenu/CenterContainer" unique_id=249426246]
+z_index = 120
+custom_maximum_size = Vector2(1, -1)
+layout_mode = 2
+offset_transform_enabled = true
+offset_transform_scale = Vector2(2.15, 2.15)
+text = "Woofy Game"
+label_settings = SubResource("LabelSettings_k2ep7")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Shadow" type="Label" parent="Camera2D/CanvasLayer/MainMenu/CenterContainer/Title" unique_id=1554375291]
+z_index = 119
+z_as_relative = false
+custom_maximum_size = Vector2(1, -1)
+layout_mode = 0
+offset_right = 1.0
+offset_bottom = 23.0
+offset_transform_enabled = true
+offset_transform_position = Vector2(8, 8)
+text = "Woofy Game"
+label_settings = SubResource("LabelSettings_e6e4d")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GameHUD" type="Control" parent="Camera2D/CanvasLayer" unique_id=334466289]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_top = -5.9999995
+offset_right = 40.0
+offset_bottom = 34.0
+
+[node name="Background" type="MeshInstance2D" parent="Camera2D/CanvasLayer/GameHUD" unique_id=1636289758]
+visible = false
+self_modulate = Color(0.24705882, 0.15294118, 0.1882353, 1)
+z_index = -1
+position = Vector2(0, 5.9999995)
+scale = Vector2(336.82, 336.82)
+mesh = SubResource("QuadMesh_3h6po")
+
+[node name="RoomCode" type="Label" parent="Camera2D/CanvasLayer/GameHUD" unique_id=279190319]
+z_index = 120
+custom_maximum_size = Vector2(1, -1)
+layout_mode = 1
+offset_left = -145.0
+offset_top = 72.0
+offset_right = -144.0
+offset_bottom = 93.0
+offset_transform_enabled = true
+offset_transform_scale = Vector2(0.5, 0.5)
+text = "Room code: ??????"
+label_settings = SubResource("LabelSettings_k2ep7")
+vertical_alignment = 1
+
+[node name="Shadow" type="Label" parent="Camera2D/CanvasLayer/GameHUD/RoomCode" unique_id=472518893]
+z_index = 119
+z_as_relative = false
+custom_maximum_size = Vector2(1, -1)
+layout_mode = 0
+offset_right = 1.0
+offset_bottom = 23.0
+offset_transform_enabled = true
+offset_transform_position = Vector2(2, 2)
+text = "Room code: ??????"
+label_settings = SubResource("LabelSettings_e6e4d")
+vertical_alignment = 1
+
+[node name="Lobby" type="Control" parent="Camera2D/CanvasLayer" unique_id=481646337]
+visible = false
+z_index = 100
+layout_mode = 3
+anchors_preset = 0
+
+[node name="PlayerContainer" type="MarginContainer" parent="Camera2D/CanvasLayer/Lobby" unique_id=2021056208]
+layout_mode = 0
+offset_left = 7.5167236
+offset_top = 48.0
+offset_right = 208.51672
+offset_bottom = 156.0
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="Grid" type="GridContainer" parent="Camera2D/CanvasLayer/Lobby/PlayerContainer" unique_id=1658699333]
+layout_mode = 2
+columns = 3
+
+[node name="PlayerCard" type="Panel" parent="Camera2D/CanvasLayer/Lobby/PlayerContainer/Grid" unique_id=966194823]
+custom_minimum_size = Vector2(62, 28)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ph5s1")
+
+[node name="MarginContainer" type="MarginContainer" parent="Camera2D/CanvasLayer/Lobby/PlayerContainer/Grid/PlayerCard" unique_id=361114449]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Camera2D/CanvasLayer/Lobby/PlayerContainer/Grid/PlayerCard/MarginContainer" unique_id=1688868967]
+layout_mode = 2
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="PlayerName" type="Label" parent="Camera2D/CanvasLayer/Lobby/PlayerContainer/Grid/PlayerCard/MarginContainer/VBoxContainer" unique_id=1942067393]
+layout_mode = 2
+text = "Player Name 1"
+label_settings = SubResource("LabelSettings_arjps")
+vertical_alignment = 1
+
+[node name="Class" type="Label" parent="Camera2D/CanvasLayer/Lobby/PlayerContainer/Grid/PlayerCard/MarginContainer/VBoxContainer" unique_id=535292202]
+layout_mode = 2
+text = "Something here"
+label_settings = SubResource("LabelSettings_arjps")
+vertical_alignment = 1
+
+[node name="MainMenu" type="MeshInstance2D" parent="Camera2D/CanvasLayer/Lobby" unique_id=1214986587]
+self_modulate = Color(0.24705882, 0.15294118, 0.1882353, 1)
+z_index = -1
+position = Vector2(146.51671, 81.99999)
+scale = Vector2(336.82, 336.82)
+mesh = SubResource("QuadMesh_3h6po")
+
+[node name="Line" type="MeshInstance2D" parent="Camera2D/CanvasLayer/Lobby" unique_id=1972849427]
+self_modulate = Color(0, 0, 0, 0.4745098)
+z_index = -1
+position = Vector2(146.51672, 23.000011)
+scale = Vector2(328.7356, 7.65)
+mesh = SubResource("QuadMesh_3h6po")
+
+[node name="Line2" type="MeshInstance2D" parent="Camera2D/CanvasLayer/Lobby" unique_id=37320004]
+self_modulate = Color(0, 0, 0, 0.4745098)
+z_index = -1
+position = Vector2(107.86643, 46.000008)
+scale = Vector2(231.37999, 7.65)
+mesh = SubResource("QuadMesh_3h6po")
+
+[node name="Line4" type="MeshInstance2D" parent="Camera2D/CanvasLayer/Lobby" unique_id=120891779]
+self_modulate = Color(0, 0, 0, 0.4745098)
+z_index = -1
+position = Vector2(210.40672, 90.50856)
+scale = Vector2(4.354, 267.852)
+mesh = SubResource("QuadMesh_3h6po")
+
+[node name="Line5" type="MeshInstance2D" parent="Camera2D/CanvasLayer/Lobby" unique_id=1736806203]
+self_modulate = Color(0, 0, 0, 0.4745098)
+z_index = -1
+position = Vector2(5.3167267, 90.5)
+scale = Vector2(4.354, 267.852)
+mesh = SubResource("QuadMesh_3h6po")
+
+[node name="Title" type="Label" parent="Camera2D/CanvasLayer/Lobby" unique_id=1207640282]
+z_index = 120
+custom_maximum_size = Vector2(1, -1)
+layout_mode = 0
+offset_left = 146.51672
+offset_top = -2.0
+offset_right = 147.51672
+offset_bottom = 21.0
+offset_transform_enabled = true
+offset_transform_scale = Vector2(0.78, 0.78)
+text = "Lobby | Code: ??????"
+label_settings = SubResource("LabelSettings_k2ep7")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Shadow" type="Label" parent="Camera2D/CanvasLayer/Lobby/Title" unique_id=300614001]
+z_index = 119
+z_as_relative = false
+custom_maximum_size = Vector2(1, -1)
+layout_mode = 0
+offset_right = 1.0
+offset_bottom = 23.0
+offset_transform_enabled = true
+offset_transform_position = Vector2(2, 2)
+text = "Lobby | Code: ??????"
+label_settings = SubResource("LabelSettings_e6e4d")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlayerIndecator" type="Label" parent="Camera2D/CanvasLayer/Lobby" unique_id=1039018639]
+layout_mode = 0
+offset_left = 70.51672
+offset_top = 28.0
+offset_right = 143.51672
+offset_bottom = 39.0
+text = "Player list:"
+label_settings = SubResource("LabelSettings_3h6po")
+
+[node name="RoomCodeInput" type="LineEdit" parent="Camera2D/CanvasLayer/Lobby" unique_id=787628960]
+layout_mode = 0
+offset_left = 215.51672
+offset_top = 28.0
+offset_right = 288.51672
+offset_bottom = 45.0
+theme_override_fonts/font = ExtResource("9_arjps")
+theme_override_font_sizes/font_size = 6
+theme_override_styles/focus = SubResource("StyleBoxFlat_arjps")
+placeholder_text = "Enter name"
+max_length = 12
+expand_to_text_length = true
+caret_blink = true
+
+[node name="OptionButton" type="OptionButton" parent="Camera2D/CanvasLayer/Lobby" unique_id=657588041]
+custom_maximum_size = Vector2(73, -1)
+layout_mode = 0
+offset_left = 215.51672
+offset_top = 47.0
+offset_right = 288.51672
+offset_bottom = 67.0
+theme_override_fonts/font = ExtResource("9_arjps")
+theme_override_font_sizes/font_size = 6
+theme_override_styles/normal = SubResource("StyleBoxFlat_3u3i7")
+selected = 0
+item_count = 2
+popup/item_0/text = "Select class"
+popup/item_0/id = 0
+popup/item_1/text = "Basic"
+popup/item_1/id = 1
+
+[node name="Border" type="Sprite2D" parent="." unique_id=10000236]
+z_index = 2
+texture_filter = 1
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("6_n7dpw")
+centered = false
+
+[node name="Shadow" type="Sprite2D" parent="Border" unique_id=782535311]
+modulate = Color(0, 0, 0, 0.5019608)
+z_index = 1
+z_as_relative = false
+texture_filter = 1
+position = Vector2(8, 8)
+texture = ExtResource("6_n7dpw")
+centered = false
+
+[node name="GameManager" type="Node" parent="." unique_id=585686248 node_paths=PackedStringArray("main_menu", "game_hud", "multiplayer_manager", "foot_step_node")]
+script = ExtResource("8_e07m0")
+main_menu = NodePath("../Camera2D/CanvasLayer/MainMenu")
+game_hud = NodePath("../Camera2D/CanvasLayer/GameHUD")
+multiplayer_manager = NodePath("../MultiplayerManager")
+foot_step_node = NodePath("../FootPrints")
+player_tscn = ExtResource("4_xfv01")
+
+[node name="FootPrints" type="Node2D" parent="." unique_id=1416013855]
+z_index = 3
+script = ExtResource("9_mx5c3")
+
+[node name="MultiplayerManager" type="Node" parent="." unique_id=1875156573]
+script = ExtResource("10_mmw6q")
+debug_logs_enabled = false
