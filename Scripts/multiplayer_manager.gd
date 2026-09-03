@@ -46,6 +46,8 @@ var _pending_ack_messages: Dictionary = {}
 var _seen_transport_message_ids: Dictionary = {}
 var _expected_next_message_ids_by_peer: Dictionary = {}
 var _ordered_incoming_messages: Dictionary = {}
+var _webrtc_reconnect_cooldown: float = 0.0
+var _webrtc_reconnect_interval: float = 2.5
 
 
 func _ready() -> void:
@@ -60,11 +62,19 @@ func _process(_delta: float) -> void:
     _socket.poll()
 
     if _socket.get_ready_state() == WebSocketPeer.STATE_CLOSED:
+      _debug_log("signaling_socket_closed", {
+        "room_code": current_room_code
+      })
       _signal_connected = false
 
     while _socket.get_available_packet_count() > 0:
       var packet: String = _socket.get_packet().get_string_from_utf8()
       _handle_server_message(packet)
+
+  if not _signal_connected and own_peer_id != 0 and (is_host or is_client):
+    _connect_signaling()
+
+  _update_webrtc_reconnects(_delta)
 
   for remote_peer_id in _webrtc_peers.keys():
     var rtc: WebRTCPeerConnection = _webrtc_peers[remote_peer_id]
@@ -72,6 +82,36 @@ func _process(_delta: float) -> void:
 
   _flush_pending_peer_messages()
   _retry_pending_ack_messages()
+
+
+func _update_webrtc_reconnects(_delta: float) -> void:
+  _webrtc_reconnect_cooldown -= _delta
+  if _webrtc_reconnect_cooldown > 0.0:
+    return
+
+  _webrtc_reconnect_cooldown = _webrtc_reconnect_interval
+
+  if own_peer_id == 0 or not _signal_connected:
+    return
+
+  var peers_to_retry: Array = []
+  for remote_peer_id in _webrtc_peers.keys():
+    var rtc: WebRTCPeerConnection = _webrtc_peers[remote_peer_id]
+    var state := rtc.get_connection_state()
+    if state == WebRTCPeerConnection.STATE_CONNECTED:
+      continue
+    if state in [WebRTCPeerConnection.STATE_FAILED, WebRTCPeerConnection.STATE_DISCONNECTED, WebRTCPeerConnection.STATE_CLOSED]:
+      peers_to_retry.append(int(remote_peer_id))
+
+  for remote_peer_id in peers_to_retry:
+    _debug_log("webrtc_peer_reconnect_attempt", {
+      "remote_peer_id": remote_peer_id,
+      "is_host": is_host,
+      "host_peer_id": host_peer_id,
+      "room_code": current_room_code
+    })
+    _remove_webrtc_peer(remote_peer_id)
+    _ensure_peer_connection(remote_peer_id, is_host or remote_peer_id == host_peer_id)
 
 
 func start_as_host():

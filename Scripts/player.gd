@@ -20,6 +20,10 @@ var drag: float = 5000.0
 var velocity: Vector2 = Vector2.ZERO
 var move_direction: Vector2 = Vector2.ZERO
 
+var smooth_to_position: Vector2 = Vector2.ZERO
+var smooth_to_rotation: float = 0.0
+var smooth_to_scale: Vector2 = Vector2.ONE
+
 var step_timer: float = 0.0
 var step_tilt: float = 0.24
 var step_frequency: float = 4.0
@@ -46,18 +50,18 @@ func _ready() -> void:
       if multiplayer_manager.is_client and message["type"] == "player-move" and game_manager and message["peer_id"] != multiplayer_manager.own_peer_id:
         var player_node = game_manager.get_node_or_null(str(message["peer_id"]))
         if player_node:
-          player_node.position = message["position"]
-          player_node.rotation = message["rotation"]
-          player_node.scale = message["scale"]
+          player_node.smooth_to_position = message["position"]
+          player_node.smooth_to_rotation = message["rotation"]
+          player_node.smooth_to_scale = message["scale"]
           player_node.flip_h = message["flip_h"]
     )
     multiplayer_manager.subscribe_to_client_messages(func(_peer_id, message):
       if multiplayer_manager.is_host and message["type"] == "player-move" and message["peer_id"] != multiplayer_manager.own_peer_id and game_manager:
         var player_node = game_manager.get_node_or_null(str(message["peer_id"]))
         if player_node:
-          player_node.position = message["position"]
-          player_node.rotation = message["rotation"]
-          player_node.scale = message["scale"]
+          player_node.smooth_to_position = message["position"]
+          player_node.smooth_to_rotation = message["rotation"]
+          player_node.smooth_to_scale = message["scale"]
           player_node.flip_h = message["flip_h"]
 
           for peer_id in game_manager.connected_peers:
@@ -107,7 +111,7 @@ func _unhandled_input(event: InputEvent) -> void:
       move_direction.y = event.axis_value
 
 
-func update_non_client() -> void:
+func update_non_client(delta: float) -> void:
   clothes.flip_h = flip_h
   shadow.flip_h = flip_h
 
@@ -129,6 +133,11 @@ func update_non_client() -> void:
     modulate = Color(1, 0.5, 0.5, 1)
     var init_size = scale
     scale = Vector2(init_size.x * 0.75, init_size.y)
+
+  if multiplayer_manager and multiplayer_manager.own_peer_id != int(name):
+    position = position.lerp(smooth_to_position, min(30.0 * delta, 1.0))
+    rotation = lerp(rotation, smooth_to_rotation, min(48.0 * delta, 1.0))
+    scale = scale.lerp(smooth_to_scale, min(48.0 * delta, 1.0))
 
 
 func update_multiplayer_state() -> void:
@@ -175,7 +184,7 @@ func update_collisions() -> void:
 
 
 func _physics_process(delta: float) -> void:
-  update_non_client()
+  update_non_client(delta)
 
   if not client_controlled:
     return
