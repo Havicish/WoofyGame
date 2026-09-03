@@ -6,12 +6,14 @@ extends Control
 var host_button: Button
 var join_button: Button
 var room_code_input: LineEdit
+var ws_server_address: LineEdit
 
 
 func _ready() -> void:
   host_button = $HostButton
   join_button = $JoinButton
   room_code_input = $RoomCodeInput
+  ws_server_address = $WsServerAddress
 
   host_button.pressed.connect(_on_host_button_pressed)
   join_button.pressed.connect(_on_join_button_pressed)
@@ -19,6 +21,7 @@ func _ready() -> void:
 func _on_host_button_pressed() -> void:
   game_manager.in_main_menu = false
   game_manager.in_lobby_menu = true
+  multiplayer_manager.signaling_url = str(ws_server_address.text.strip_edges())
   multiplayer_manager.start_as_host()
 
 func _on_join_button_pressed() -> void:
