@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" uid="uid://bteilxdrrs47q" path="res://player_card.tscn" id="12_ck5pg"]
 [ext_resource type="Texture2D" uid="uid://b1ebvnpdt8ytd" path="res://Sprites/PlayerTest (1).png" id="13_qness"]
 [ext_resource type="StyleBox" uid="uid://6kkclm7bk0fy" path="res://Resources/ability_background.tres" id="14_efrhc"]
+[ext_resource type="StyleBox" uid="uid://wc65gtqixwq2" path="res://Resources/ability_cooldown.tres" id="15_tge88"]
 [ext_resource type="Texture2D" uid="uid://dhqdptxrkshyn" path="res://Sprites/Tree.png" id="19_1ilqr"]
 [ext_resource type="Script" uid="uid://c3ukm6ar5kb55" path="res://Scripts/colliders.gd" id="19_s2xj5"]
 [ext_resource type="Texture2D" uid="uid://dajsfp26xphap" path="res://Sprites/Shadow.png" id="20_mjd0e"]
@@ -265,7 +266,6 @@ multiplayer_manager = NodePath("../../../MultiplayerManager")
 player_card_tscn = ExtResource("12_ck5pg")
 
 [node name="Background" type="Panel" parent="Camera2D/CanvasLayer/Lobby" unique_id=1279551414]
-visible = false
 z_index = -1
 layout_mode = 1
 anchors_preset = 15
@@ -504,12 +504,32 @@ text = "Room code: ??????"
 label_settings = SubResource("LabelSettings_e6e4d")
 vertical_alignment = 1
 
-[node name="Panel" type="Panel" parent="Camera2D/CanvasLayer/GameHUD" unique_id=94900246]
-visible = false
+[node name="Ability1" type="Panel" parent="Camera2D/CanvasLayer/GameHUD" unique_id=94900246]
+propagate_maximum_size = true
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 1712.0
+offset_top = 872.0
+offset_right = 1892.0
+offset_bottom = 1052.0
 theme_override_styles/panel = ExtResource("14_efrhc")
+
+[node name="Cooldown" type="Control" parent="Camera2D/CanvasLayer/GameHUD/Ability1" unique_id=747073532]
+clip_contents = true
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = 180.0
+grow_horizontal = 2
+grow_vertical = 0
+rotation = 4.712389
+
+[node name="Panel" type="Panel" parent="Camera2D/CanvasLayer/GameHUD/Ability1/Cooldown" unique_id=1440308173]
+layout_mode = 1
+offset_right = 180.0
+offset_bottom = 180.0
+theme_override_styles/panel = ExtResource("15_tge88")
 
 [node name="Border" type="Sprite2D" parent="." unique_id=10000236]
 z_index = 2
