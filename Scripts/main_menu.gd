@@ -18,13 +18,20 @@ func _ready() -> void:
   host_button.pressed.connect(_on_host_button_pressed)
   join_button.pressed.connect(_on_join_button_pressed)
 
+func _apply_signaling_url() -> void:
+  var configured_url := ws_server_address.text.strip_edges()
+  if configured_url.is_empty():
+    configured_url = "ws://127.0.0.1:8080"
+  multiplayer_manager.signaling_url = configured_url
+
 func _on_host_button_pressed() -> void:
   game_manager.in_main_menu = false
   game_manager.in_lobby_menu = true
-  multiplayer_manager.signaling_url = str(ws_server_address.text.strip_edges())
+  _apply_signaling_url()
   multiplayer_manager.start_as_host()
 
 func _on_join_button_pressed() -> void:
+  _apply_signaling_url()
   var room_code := room_code_input.text.strip_edges()
   if room_code.is_empty():
     push_warning("Please enter a room code before joining.")
