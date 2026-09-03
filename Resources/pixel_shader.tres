@@ -1,0 +1,6 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://bq13w2o5vh0ro"]
+
+[ext_resource type="Shader" uid="uid://ca1kshhvwg0k1" path="res://Shaders/pixel_shader.gdshader" id="1_waxpp"]
+
+[resource]
+shader = ExtResource("1_waxpp")

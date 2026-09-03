@@ -6,13 +6,16 @@ extends Sprite2D
 @export var foot_step_node: Node2D
 @export var game_manager: Node
 @export var multiplayer_manager: Node
+@export var colliders_node: Node2D
 @export var clothes_color: Color = Color(1, 1, 1, 1)
 @export var plr_class: String = "None"
 @export var is_wolf: bool = false
+@export var in_wolf_form: bool = false
 @export var client_controlled: bool = true
+@export var health: float = 100.0
 
-var survivor_speed: float = 700.0
-var vampire_speed: float = 850.0
+var survivor_speed: float = 650.0
+var wolf_speed: float = 800.0
 var drag: float = 5000.0
 var velocity: Vector2 = Vector2.ZERO
 var move_direction: Vector2 = Vector2.ZERO
@@ -30,7 +33,7 @@ var clothes
 var shadow
 
 
-# Called when the node enters the scene tree for the first time.
+# Called when the node enters the scene obj for the first time.
 func _ready() -> void:
   original_scale = scale
   clothes = get_node("Clothes")
@@ -56,6 +59,23 @@ func _ready() -> void:
           player_node.rotation = message["rotation"]
           player_node.scale = message["scale"]
           player_node.flip_h = message["flip_h"]
+
+          for peer_id in game_manager.connected_peers:
+            multiplayer_manager.send_to_client(peer_id, {
+              "type": "player-move",
+              "peer_id": message["peer_id"],
+              "position": message["position"],
+              "rotation": message["rotation"],
+              "scale": message["scale"],
+              "flip_h": message["flip_h"]
+            })
+    )
+    multiplayer_manager.subscribe_to_started_hosting(func(_info):
+      name = str(multiplayer_manager.own_peer_id)
+    )
+    multiplayer_manager.subscribe_to_peer_join_room(func(info):
+      if info.joined_peer_id == multiplayer_manager.own_peer_id:
+        name = str(multiplayer_manager.own_peer_id)
     )
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -88,10 +108,69 @@ func _unhandled_input(event: InputEvent) -> void:
       move_direction.y = event.axis_value
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
+func update_non_client() -> void:
+  clothes.flip_h = flip_h
+  shadow.flip_h = flip_h
+
+  if rotation / step_tilt * 2 >= 0.95 and last_rotation / step_tilt * 2 < 0.95 and foot_step_node:
+    foot_step_node.create_foot_print(preload("res://Sprites/Footstep.png"), position + Vector2(0, 8), Vector2(0.75, 0.75), 7.5)
+  if rotation / step_tilt * 2 <= -0.95 and last_rotation / step_tilt * 2 > -0.95 and foot_step_node:
+    foot_step_node.create_foot_print(preload("res://Sprites/Footstep.png"), position + Vector2(0, 8), Vector2(0.75, 0.75), 7.5)
+  last_rotation = rotation
+
+
+func update_multiplayer_state() -> void:
+  if multiplayer_manager and multiplayer_manager.is_connected:
+    if multiplayer_manager.is_client:
+      multiplayer_manager.send_to_host({
+        "type": "player-move",
+        "peer_id": multiplayer_manager.own_peer_id,
+        "position": position,
+        "rotation": rotation,
+        "scale": scale,
+        "flip_h": flip_h
+      })
+    if multiplayer_manager.is_host:
+      multiplayer_manager.send_to_all_clients({
+        "type": "player-move",
+        "peer_id": multiplayer_manager.own_peer_id,
+        "position": position,
+        "rotation": rotation,
+        "scale": scale,
+        "flip_h": flip_h
+      })
+
+
+func update_collisions() -> void:
+  for other_plr in game_manager.get_children():
+    if other_plr is Sprite2D and other_plr != self:
+      var distance: float = position.distance_to(other_plr.position)
+      var min_distance: float = 16.0
+      if distance < min_distance:
+        var overlap: float = min_distance - distance
+        var direction: Vector2 = (position - other_plr.position).normalized()
+        velocity += direction * overlap * 2.0
+
+  for obj in colliders_node.get_children():
+    if obj is Sprite2D:
+      var obj_pos = obj.position + (Vector2.ZERO if not obj.has_meta("CollisionOffset") else obj.get_meta("CollisionOffset"))
+      var distance: float = position.distance_to(obj_pos)
+      var min_distance: float = obj.get_meta("Size") if obj.has_meta("Size") else 16.0
+      if distance < min_distance:
+        var overlap: float = min_distance - distance
+        var direction: Vector2 = (position - obj_pos).normalized()
+        velocity += direction * overlap * 2.0
+
+
 func _physics_process(delta: float) -> void:
+  update_non_client()
+
   if not client_controlled:
     return
+
+  update_multiplayer_state()
+
+  update_collisions()
 
   move_direction = Vector2.ZERO
 
@@ -106,19 +185,13 @@ func _physics_process(delta: float) -> void:
 
   move_direction = move_direction.normalized()
 
-  var speed: float = vampire_speed if is_wolf else survivor_speed
-  velocity += move_direction.normalized() * speed * delta
+  var speed: float = wolf_speed if in_wolf_form else survivor_speed
+  velocity += move_direction * speed * delta
   velocity /= pow(1 + drag, delta)
   position += velocity * delta
 
   if move_direction.length() > 0.0:
     step_timer += delta * step_frequency * clamp(velocity.length() / max(speed, 1.0), 0.5, 1.0)
-
-    if rotation / step_tilt * 2 >= 0.95 and last_rotation / step_tilt * 2 < 0.95 and foot_step_node:
-      foot_step_node.create_foot_print(preload("res://Sprites/Footstep.png"), position + Vector2(0, 8), Vector2(0.75, 0.75), 5)
-    if rotation / step_tilt * 2 <= -0.95 and last_rotation / step_tilt * 2 > -0.95 and foot_step_node:
-      foot_step_node.create_foot_print(preload("res://Sprites/Footstep.png"), position + Vector2(0, 8), Vector2(0.75, 0.75), 5)
-    last_rotation = rotation
 
     var step_wave: float = sin(step_timer * TAU)
     var target_rotation: float = step_wave * step_tilt
@@ -139,16 +212,21 @@ func _physics_process(delta: float) -> void:
 
   if move_direction.x > 0.0:
     flip_h = false
-    clothes.flip_h = false
-    shadow.flip_h = false
   elif move_direction.x < 0.0:
     flip_h = true
-    clothes.flip_h = true
-    shadow.flip_h = true
+
+  clothes.flip_h = flip_h
+  shadow.flip_h = flip_h
 
   clothes.modulate = clothes_color
 
-  if is_wolf:
+  if health <= 0.0:
+    rotation = PI / 2
+    modulate = Color(1, 0.5, 0.5, 1)
+    var init_size = scale
+    scale = Vector2(init_size.x * 0.75, init_size.y)
+
+  if in_wolf_form:
     clothes.visible = false
     texture = preload("res://Sprites/Woof.png")
   else:
@@ -166,23 +244,3 @@ func _physics_process(delta: float) -> void:
 
     position.x = clamp(position.x, 0, border_size.x)
     position.y = clamp(position.y, 0, border_size.y)
-
-  if multiplayer_manager and multiplayer_manager.is_connected:
-    if multiplayer_manager.is_client:
-      multiplayer_manager.send_to_host({
-        "type": "player-move",
-        "peer_id": multiplayer_manager.own_peer_id,
-        "position": position,
-        "rotation": rotation,
-        "scale": scale,
-        "flip_h": flip_h
-      })
-    if multiplayer_manager.is_host:
-      multiplayer_manager.send_to_all_clients({
-        "type": "player-move",
-        "peer_id": multiplayer_manager.own_peer_id,
-        "position": position,
-        "rotation": rotation,
-        "scale": scale,
-        "flip_h": flip_h
-      })

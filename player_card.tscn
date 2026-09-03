@@ -1,0 +1,88 @@
+[gd_scene format=3 uid="uid://bteilxdrrs47q"]
+
+[ext_resource type="StyleBox" uid="uid://c3v0aa617gnnh" path="res://Resources/player_card.tres" id="1_g7nas"]
+[ext_resource type="FontFile" uid="uid://bpcpjyjvubtb" path="res://Silkscreen-Regular.ttf" id="2_rw0am"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_h8hc7"]
+font = ExtResource("2_rw0am")
+font_size = 40
+
+[sub_resource type="LabelSettings" id="LabelSettings_3h6po"]
+font_size = 240
+font_color = Color(0.36862746, 0.8352941, 0.3254902, 0.5764706)
+
+[sub_resource type="LabelSettings" id="LabelSettings_g7nas"]
+font_size = 240
+font_color = Color(1, 0.35686275, 0.38431373, 0.5764706)
+
+[sub_resource type="LabelSettings" id="LabelSettings_rw0am"]
+font_size = 240
+font_color = Color(1, 1, 1, 0.5764706)
+
+[node name="PlayerCard" type="Panel" unique_id=558941141]
+custom_minimum_size = Vector2(525, 125)
+theme_override_styles/panel = ExtResource("1_g7nas")
+metadata/is_host = false
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=54512662]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 12.0
+offset_right = -10.0
+offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="PlrName" type="Label" parent="VBoxContainer" unique_id=1427455981]
+custom_minimum_size = Vector2(0, 41.667)
+layout_mode = 2
+text = "Player name"
+label_settings = SubResource("LabelSettings_h8hc7")
+vertical_alignment = 1
+
+[node name="ClassName" type="Label" parent="VBoxContainer" unique_id=791472637]
+custom_minimum_size = Vector2(0, 41.667)
+layout_mode = 2
+text = "Class name"
+label_settings = SubResource("LabelSettings_h8hc7")
+vertical_alignment = 1
+
+[node name="Ready" type="Control" parent="." unique_id=514385101]
+clip_contents = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Ready" type="CenterContainer" parent="Ready" unique_id=1665639619]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -184.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="Ready" type="Label" parent="Ready/Ready" unique_id=1002097713]
+visible = false
+layout_mode = 2
+text = "✓"
+label_settings = SubResource("LabelSettings_3h6po")
+
+[node name="NotReady" type="Label" parent="Ready/Ready" unique_id=1737415683]
+layout_mode = 2
+text = "X"
+label_settings = SubResource("LabelSettings_g7nas")
+
+[node name="Host" type="Label" parent="Ready/Ready" unique_id=1712627892]
+visible = false
+layout_mode = 2
+text = "H"
+label_settings = SubResource("LabelSettings_rw0am")

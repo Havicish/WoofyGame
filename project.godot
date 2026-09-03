@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Vamps"
+config/name="Woofy Game"
 run/main_scene="uid://bncn8qkqx7fuh"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"

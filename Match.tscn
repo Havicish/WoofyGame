@@ -13,6 +13,15 @@
 [ext_resource type="Script" uid="uid://d03l8ylxirrnk" path="res://Scripts/foot_print_manager.gd" id="9_mx5c3"]
 [ext_resource type="StyleBox" uid="uid://cr44sgfvpe4mg" path="res://Resources/new_style_box_flat3.tres" id="10_h8hc7"]
 [ext_resource type="Script" uid="uid://g0oppy2ovgjs" path="res://Scripts/multiplayer_manager.gd" id="10_mmw6q"]
+[ext_resource type="StyleBox" uid="uid://45xigojxkpn4" path="res://Resources/bar.tres" id="10_ph5s1"]
+[ext_resource type="Script" uid="uid://vysg7wgue84j" path="res://Scripts/lobby.gd" id="10_qness"]
+[ext_resource type="StyleBox" uid="uid://bn4sgh0yu1wtm" path="res://Resources/rounded_box.tres" id="11_3u3i7"]
+[ext_resource type="PackedScene" uid="uid://bteilxdrrs47q" path="res://player_card.tscn" id="12_ck5pg"]
+[ext_resource type="Texture2D" uid="uid://b1ebvnpdt8ytd" path="res://Sprites/PlayerTest (1).png" id="13_qness"]
+[ext_resource type="Texture2D" uid="uid://dhqdptxrkshyn" path="res://Sprites/Tree.png" id="19_1ilqr"]
+[ext_resource type="Script" uid="uid://c3ukm6ar5kb55" path="res://Scripts/colliders.gd" id="19_s2xj5"]
+[ext_resource type="Texture2D" uid="uid://dajsfp26xphap" path="res://Sprites/Shadow.png" id="20_mjd0e"]
+[ext_resource type="Texture2D" uid="uid://d2n1yqvm7y6f1" path="res://Sprites/Campfire.png" id="22_7scts"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_3h6po"]
 particle_flag_disable_z = true
@@ -36,23 +45,7 @@ turbulence_initial_displacement_max = 1.490116e-06
 
 [sub_resource type="LabelSettings" id="LabelSettings_xfv01"]
 font = ExtResource("9_arjps")
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_arjps"]
-content_margin_left = 4.0
-content_margin_top = 4.0
-content_margin_right = 4.0
-content_margin_bottom = 4.0
-bg_color = Color(1, 1, 1, 0.75)
-draw_center = false
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
-corner_detail = 5
-expand_margin_left = 2.0
-expand_margin_top = 2.0
-expand_margin_right = 2.0
-expand_margin_bottom = 2.0
+font_size = 76
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_trbmq"]
 content_margin_left = 0.0
@@ -71,41 +64,9 @@ font = ExtResource("9_arjps")
 font_size = 100
 font_color = Color(0, 0, 0, 0.5019608)
 
-[sub_resource type="QuadMesh" id="QuadMesh_3h6po"]
-size = Vector2(0.87, 0.49)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ph5s1"]
-content_margin_left = 0.0
-content_margin_top = 0.0
-content_margin_right = 0.0
-content_margin_bottom = 0.0
-bg_color = Color(0, 0, 0, 0.4745098)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
-corner_detail = 5
-
-[sub_resource type="LabelSettings" id="LabelSettings_arjps"]
+[sub_resource type="LabelSettings" id="LabelSettings_m6441"]
 font = ExtResource("9_arjps")
-font_size = 6
-
-[sub_resource type="LabelSettings" id="LabelSettings_3h6po"]
-font = ExtResource("9_arjps")
-font_size = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3u3i7"]
-content_margin_left = 8.0
-content_margin_top = 4.0
-content_margin_right = 8.0
-content_margin_bottom = 4.0
-bg_color = Color(0.1, 0.1, 0.1, 0.6)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
-corner_detail = 5
-anti_aliasing = false
+font_size = 40
 
 [node name="Node2D" type="Node2D" unique_id=1257993730]
 
@@ -149,14 +110,6 @@ randomness = 1.0
 fixed_fps = 120
 process_material = SubResource("ParticleProcessMaterial_3h6po")
 
-[node name="Player" parent="." unique_id=1945730246 node_paths=PackedStringArray("camera", "border", "foot_step_node", "game_manager", "multiplayer_manager") instance=ExtResource("4_xfv01")]
-position = Vector2(21, 21)
-camera = NodePath("../Camera2D")
-border = NodePath("../Border")
-foot_step_node = NodePath("../FootPrints")
-game_manager = NodePath("../GameManager")
-multiplayer_manager = NodePath("../MultiplayerManager")
-
 [node name="Camera2D" type="Camera2D" parent="." unique_id=496060631]
 texture_filter = 1
 zoom = Vector2(6.6, 6.6)
@@ -164,6 +117,7 @@ zoom = Vector2(6.6, 6.6)
 [node name="CanvasLayer" type="CanvasLayer" parent="Camera2D" unique_id=2046636335]
 
 [node name="MainMenu" type="Control" parent="Camera2D/CanvasLayer" unique_id=471586710 node_paths=PackedStringArray("game_manager", "multiplayer_manager")]
+visible = false
 z_index = 101
 layout_mode = 3
 anchors_preset = 15
@@ -176,11 +130,12 @@ game_manager = NodePath("../../../GameManager")
 multiplayer_manager = NodePath("../../../MultiplayerManager")
 
 [node name="HostButton" type="Button" parent="Camera2D/CanvasLayer/MainMenu" unique_id=64696919]
+z_index = 13
 layout_mode = 0
-offset_left = -70.0
-offset_top = -18.0
-offset_right = 70.0
-offset_bottom = 8.0
+offset_left = 229.0
+offset_top = 328.0
+offset_right = 1691.0
+offset_bottom = 482.0
 theme_override_styles/normal = ExtResource("8_ph5s1")
 theme_override_styles/pressed = ExtResource("9_3u3i7")
 theme_override_styles/hover = ExtResource("10_h8hc7")
@@ -197,17 +152,18 @@ label_settings = SubResource("LabelSettings_xfv01")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="JoinButton" type="Button" parent="Camera2D/CanvasLayer/MainMenu" unique_id=1571332158]
+[node name="JoinButton" type="Button" parent="Camera2D/CanvasLayer/MainMenu" unique_id=1192679014]
+z_index = 13
 layout_mode = 0
-offset_left = -70.0
-offset_top = 18.0
-offset_right = 70.0
-offset_bottom = 44.0
+offset_left = 229.0
+offset_top = 531.0
+offset_right = 1691.0
+offset_bottom = 685.0
 theme_override_styles/normal = ExtResource("8_ph5s1")
 theme_override_styles/pressed = ExtResource("9_3u3i7")
 theme_override_styles/hover = ExtResource("10_h8hc7")
 
-[node name="Label" type="Label" parent="Camera2D/CanvasLayer/MainMenu/JoinButton" unique_id=1745086875]
+[node name="Label" type="Label" parent="Camera2D/CanvasLayer/MainMenu/JoinButton" unique_id=1038360816]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -219,26 +175,29 @@ label_settings = SubResource("LabelSettings_xfv01")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="RoomCodeInput" type="LineEdit" parent="Camera2D/CanvasLayer/MainMenu" unique_id=151331991]
+[node name="RoomCodeInput" type="LineEdit" parent="Camera2D/CanvasLayer/MainMenu" unique_id=814839600]
+z_index = 13
 layout_mode = 0
-offset_left = -70.0
-offset_top = 52.0
-offset_right = 70.0
-offset_bottom = 78.0
+offset_left = 229.0
+offset_top = 741.0
+offset_right = 1691.0
+offset_bottom = 895.0
 theme_override_fonts/font = ExtResource("9_arjps")
-theme_override_styles/focus = SubResource("StyleBoxFlat_arjps")
+theme_override_font_sizes/font_size = 84
+theme_override_styles/normal = ExtResource("8_ph5s1")
 placeholder_text = "Room code"
-max_length = 12
-expand_to_text_length = true
-caret_blink = true
+alignment = 1
+max_length = 6
 
 [node name="Background" type="Panel" parent="Camera2D/CanvasLayer/MainMenu" unique_id=1506754648]
+z_index = -1
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_trbmq")
 
 [node name="CenterContainer" type="CenterContainer" parent="Camera2D/CanvasLayer/MainMenu" unique_id=616141449]
@@ -275,6 +234,226 @@ label_settings = SubResource("LabelSettings_e6e4d")
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="Lobby" type="Control" parent="Camera2D/CanvasLayer" unique_id=2028197630 node_paths=PackedStringArray("game_manager", "multiplayer_manager")]
+visible = false
+z_index = 101
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("10_qness")
+game_manager = NodePath("../../../GameManager")
+multiplayer_manager = NodePath("../../../MultiplayerManager")
+player_card_tscn = ExtResource("12_ck5pg")
+
+[node name="Background" type="Panel" parent="Camera2D/CanvasLayer/Lobby" unique_id=1279551414]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_trbmq")
+
+[node name="Bar" type="Panel" parent="Camera2D/CanvasLayer/Lobby" unique_id=1202458749]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 195.0
+offset_bottom = -854.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("10_ph5s1")
+
+[node name="PlayerList" type="Panel" parent="Camera2D/CanvasLayer/Lobby" unique_id=1315500357]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 65.0
+offset_top = 290.0
+offset_right = -1276.0
+offset_bottom = -80.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("11_3u3i7")
+
+[node name="Name" type="Label" parent="Camera2D/CanvasLayer/Lobby/PlayerList" unique_id=1167370872]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 23.0
+grow_horizontal = 2
+offset_transform_enabled = true
+offset_transform_position_ratio = Vector2(0, 0.5)
+text = "Players:"
+label_settings = SubResource("LabelSettings_m6441")
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Camera2D/CanvasLayer/Lobby/PlayerList" unique_id=542348905]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 27.0
+offset_top = 104.0
+offset_right = -27.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Camera2D/CanvasLayer/Lobby/PlayerList/ScrollContainer" unique_id=1271413397]
+layout_mode = 2
+theme_override_constants/separation = 32
+
+[node name="ClassList" type="Panel" parent="Camera2D/CanvasLayer/Lobby" unique_id=634745151]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 697.0
+offset_top = 290.0
+offset_right = -572.0
+offset_bottom = -251.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("11_3u3i7")
+
+[node name="Name" type="Label" parent="Camera2D/CanvasLayer/Lobby/ClassList" unique_id=1064224567]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 23.0
+grow_horizontal = 2
+offset_transform_enabled = true
+offset_transform_position_ratio = Vector2(0, 0.5)
+text = "Class select:"
+label_settings = SubResource("LabelSettings_m6441")
+horizontal_alignment = 1
+
+[node name="Name2" type="Label" parent="Camera2D/CanvasLayer/Lobby/ClassList" unique_id=1298147379]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 240.0
+offset_bottom = 291.42856
+grow_horizontal = 2
+offset_transform_enabled = true
+offset_transform_position_ratio = Vector2(0, 0.5)
+text = "None yet :3"
+label_settings = SubResource("LabelSettings_m6441")
+horizontal_alignment = 1
+
+[node name="ClassDisplay" type="Panel" parent="Camera2D/CanvasLayer/Lobby" unique_id=536571485]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1408.0
+offset_top = 290.0
+offset_right = -61.0
+offset_bottom = -251.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("11_3u3i7")
+
+[node name="CenterContainer" type="CenterContainer" parent="Camera2D/CanvasLayer/Lobby/ClassDisplay" unique_id=412404746]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="Camera2D/CanvasLayer/Lobby/ClassDisplay/CenterContainer" unique_id=1900472521]
+texture_filter = 1
+layout_mode = 2
+offset_transform_enabled = true
+offset_transform_position_ratio = Vector2(-0.5, -0.5)
+offset_transform_scale = Vector2(20, 20)
+texture = ExtResource("13_qness")
+flip_h = true
+
+[node name="CenterContainer" type="CenterContainer" parent="Camera2D/CanvasLayer/Lobby" unique_id=1908607031]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 128.0
+grow_horizontal = 2
+offset_transform_enabled = true
+offset_transform_position_ratio = Vector2(0, 0.2)
+
+[node name="Title" type="Label" parent="Camera2D/CanvasLayer/Lobby/CenterContainer" unique_id=703803652]
+z_index = 120
+custom_maximum_size = Vector2(1, -1)
+layout_mode = 2
+offset_transform_enabled = true
+offset_transform_scale = Vector2(1.35, 1.35)
+text = "Lobby | Code: ??????"
+label_settings = SubResource("LabelSettings_k2ep7")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Shadow" type="Label" parent="Camera2D/CanvasLayer/Lobby/CenterContainer/Title" unique_id=1512483385]
+z_index = 119
+z_as_relative = false
+custom_maximum_size = Vector2(1, -1)
+layout_mode = 0
+offset_right = 1.0
+offset_bottom = 23.0
+offset_transform_enabled = true
+offset_transform_position = Vector2(8, 8)
+text = "Lobby | Code: ??????"
+label_settings = SubResource("LabelSettings_e6e4d")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ReadyButton" type="Button" parent="Camera2D/CanvasLayer/Lobby" unique_id=1094166942]
+z_index = 13
+layout_mode = 0
+offset_left = 1299.0
+offset_top = 874.0
+offset_right = 1858.0
+offset_bottom = 996.0
+theme_override_styles/normal = ExtResource("8_ph5s1")
+theme_override_styles/pressed = ExtResource("9_3u3i7")
+theme_override_styles/hover = ExtResource("10_h8hc7")
+
+[node name="Label" type="Label" parent="Camera2D/CanvasLayer/Lobby/ReadyButton" unique_id=1892094745]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "ready"
+label_settings = SubResource("LabelSettings_xfv01")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NameInput" type="LineEdit" parent="Camera2D/CanvasLayer/Lobby" unique_id=1495938424]
+z_index = 13
+layout_mode = 0
+offset_left = 698.0
+offset_top = 874.0
+offset_right = 1257.0
+offset_bottom = 996.0
+theme_override_fonts/font = ExtResource("9_arjps")
+theme_override_font_sizes/font_size = 48
+theme_override_styles/normal = ExtResource("8_ph5s1")
+placeholder_text = "Name input"
+alignment = 1
+max_length = 14
+
 [node name="GameHUD" type="Control" parent="Camera2D/CanvasLayer" unique_id=334466289]
 visible = false
 layout_mode = 3
@@ -283,22 +462,14 @@ offset_top = -5.9999995
 offset_right = 40.0
 offset_bottom = 34.0
 
-[node name="Background" type="MeshInstance2D" parent="Camera2D/CanvasLayer/GameHUD" unique_id=1636289758]
-visible = false
-self_modulate = Color(0.24705882, 0.15294118, 0.1882353, 1)
-z_index = -1
-position = Vector2(0, 5.9999995)
-scale = Vector2(336.82, 336.82)
-mesh = SubResource("QuadMesh_3h6po")
-
 [node name="RoomCode" type="Label" parent="Camera2D/CanvasLayer/GameHUD" unique_id=279190319]
 z_index = 120
 custom_maximum_size = Vector2(1, -1)
 layout_mode = 1
-offset_left = -145.0
-offset_top = 72.0
-offset_right = -144.0
-offset_bottom = 93.0
+offset_left = 13.0
+offset_top = 984.0
+offset_right = 14.0
+offset_bottom = 1112.5714
 offset_transform_enabled = true
 offset_transform_scale = Vector2(0.5, 0.5)
 text = "Room code: ??????"
@@ -318,165 +489,6 @@ text = "Room code: ??????"
 label_settings = SubResource("LabelSettings_e6e4d")
 vertical_alignment = 1
 
-[node name="Lobby" type="Control" parent="Camera2D/CanvasLayer" unique_id=481646337]
-visible = false
-z_index = 100
-layout_mode = 3
-anchors_preset = 0
-
-[node name="PlayerContainer" type="MarginContainer" parent="Camera2D/CanvasLayer/Lobby" unique_id=2021056208]
-layout_mode = 0
-offset_left = 7.5167236
-offset_top = 48.0
-offset_right = 208.51672
-offset_bottom = 156.0
-theme_override_constants/margin_left = 3
-theme_override_constants/margin_top = 3
-theme_override_constants/margin_right = 3
-theme_override_constants/margin_bottom = 3
-
-[node name="Grid" type="GridContainer" parent="Camera2D/CanvasLayer/Lobby/PlayerContainer" unique_id=1658699333]
-layout_mode = 2
-columns = 3
-
-[node name="PlayerCard" type="Panel" parent="Camera2D/CanvasLayer/Lobby/PlayerContainer/Grid" unique_id=966194823]
-custom_minimum_size = Vector2(62, 28)
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_ph5s1")
-
-[node name="MarginContainer" type="MarginContainer" parent="Camera2D/CanvasLayer/Lobby/PlayerContainer/Grid/PlayerCard" unique_id=361114449]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/margin_left = 2
-theme_override_constants/margin_top = 2
-theme_override_constants/margin_right = 2
-theme_override_constants/margin_bottom = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="Camera2D/CanvasLayer/Lobby/PlayerContainer/Grid/PlayerCard/MarginContainer" unique_id=1688868967]
-layout_mode = 2
-theme_override_constants/separation = 2
-alignment = 1
-
-[node name="PlayerName" type="Label" parent="Camera2D/CanvasLayer/Lobby/PlayerContainer/Grid/PlayerCard/MarginContainer/VBoxContainer" unique_id=1942067393]
-layout_mode = 2
-text = "Player Name 1"
-label_settings = SubResource("LabelSettings_arjps")
-vertical_alignment = 1
-
-[node name="Class" type="Label" parent="Camera2D/CanvasLayer/Lobby/PlayerContainer/Grid/PlayerCard/MarginContainer/VBoxContainer" unique_id=535292202]
-layout_mode = 2
-text = "Something here"
-label_settings = SubResource("LabelSettings_arjps")
-vertical_alignment = 1
-
-[node name="MainMenu" type="MeshInstance2D" parent="Camera2D/CanvasLayer/Lobby" unique_id=1214986587]
-self_modulate = Color(0.24705882, 0.15294118, 0.1882353, 1)
-z_index = -1
-position = Vector2(146.51671, 81.99999)
-scale = Vector2(336.82, 336.82)
-mesh = SubResource("QuadMesh_3h6po")
-
-[node name="Line" type="MeshInstance2D" parent="Camera2D/CanvasLayer/Lobby" unique_id=1972849427]
-self_modulate = Color(0, 0, 0, 0.4745098)
-z_index = -1
-position = Vector2(146.51672, 23.000011)
-scale = Vector2(328.7356, 7.65)
-mesh = SubResource("QuadMesh_3h6po")
-
-[node name="Line2" type="MeshInstance2D" parent="Camera2D/CanvasLayer/Lobby" unique_id=37320004]
-self_modulate = Color(0, 0, 0, 0.4745098)
-z_index = -1
-position = Vector2(107.86643, 46.000008)
-scale = Vector2(231.37999, 7.65)
-mesh = SubResource("QuadMesh_3h6po")
-
-[node name="Line4" type="MeshInstance2D" parent="Camera2D/CanvasLayer/Lobby" unique_id=120891779]
-self_modulate = Color(0, 0, 0, 0.4745098)
-z_index = -1
-position = Vector2(210.40672, 90.50856)
-scale = Vector2(4.354, 267.852)
-mesh = SubResource("QuadMesh_3h6po")
-
-[node name="Line5" type="MeshInstance2D" parent="Camera2D/CanvasLayer/Lobby" unique_id=1736806203]
-self_modulate = Color(0, 0, 0, 0.4745098)
-z_index = -1
-position = Vector2(5.3167267, 90.5)
-scale = Vector2(4.354, 267.852)
-mesh = SubResource("QuadMesh_3h6po")
-
-[node name="Title" type="Label" parent="Camera2D/CanvasLayer/Lobby" unique_id=1207640282]
-z_index = 120
-custom_maximum_size = Vector2(1, -1)
-layout_mode = 0
-offset_left = 146.51672
-offset_top = -2.0
-offset_right = 147.51672
-offset_bottom = 21.0
-offset_transform_enabled = true
-offset_transform_scale = Vector2(0.78, 0.78)
-text = "Lobby | Code: ??????"
-label_settings = SubResource("LabelSettings_k2ep7")
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Shadow" type="Label" parent="Camera2D/CanvasLayer/Lobby/Title" unique_id=300614001]
-z_index = 119
-z_as_relative = false
-custom_maximum_size = Vector2(1, -1)
-layout_mode = 0
-offset_right = 1.0
-offset_bottom = 23.0
-offset_transform_enabled = true
-offset_transform_position = Vector2(2, 2)
-text = "Lobby | Code: ??????"
-label_settings = SubResource("LabelSettings_e6e4d")
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="PlayerIndecator" type="Label" parent="Camera2D/CanvasLayer/Lobby" unique_id=1039018639]
-layout_mode = 0
-offset_left = 70.51672
-offset_top = 28.0
-offset_right = 143.51672
-offset_bottom = 39.0
-text = "Player list:"
-label_settings = SubResource("LabelSettings_3h6po")
-
-[node name="RoomCodeInput" type="LineEdit" parent="Camera2D/CanvasLayer/Lobby" unique_id=787628960]
-layout_mode = 0
-offset_left = 215.51672
-offset_top = 28.0
-offset_right = 288.51672
-offset_bottom = 45.0
-theme_override_fonts/font = ExtResource("9_arjps")
-theme_override_font_sizes/font_size = 6
-theme_override_styles/focus = SubResource("StyleBoxFlat_arjps")
-placeholder_text = "Enter name"
-max_length = 12
-expand_to_text_length = true
-caret_blink = true
-
-[node name="OptionButton" type="OptionButton" parent="Camera2D/CanvasLayer/Lobby" unique_id=657588041]
-custom_maximum_size = Vector2(73, -1)
-layout_mode = 0
-offset_left = 215.51672
-offset_top = 47.0
-offset_right = 288.51672
-offset_bottom = 67.0
-theme_override_fonts/font = ExtResource("9_arjps")
-theme_override_font_sizes/font_size = 6
-theme_override_styles/normal = SubResource("StyleBoxFlat_3u3i7")
-selected = 0
-item_count = 2
-popup/item_0/text = "Select class"
-popup/item_0/id = 0
-popup/item_1/text = "Basic"
-popup/item_1/id = 1
-
 [node name="Border" type="Sprite2D" parent="." unique_id=10000236]
 z_index = 2
 texture_filter = 1
@@ -493,13 +505,25 @@ position = Vector2(8, 8)
 texture = ExtResource("6_n7dpw")
 centered = false
 
-[node name="GameManager" type="Node" parent="." unique_id=585686248 node_paths=PackedStringArray("main_menu", "game_hud", "multiplayer_manager", "foot_step_node")]
+[node name="GameManager" type="Node" parent="." unique_id=585686248 node_paths=PackedStringArray("main_menu", "lobby_menu", "game_hud", "multiplayer_manager", "foot_step_node")]
 script = ExtResource("8_e07m0")
 main_menu = NodePath("../Camera2D/CanvasLayer/MainMenu")
+lobby_menu = NodePath("../Camera2D/CanvasLayer/Lobby")
 game_hud = NodePath("../Camera2D/CanvasLayer/GameHUD")
 multiplayer_manager = NodePath("../MultiplayerManager")
 foot_step_node = NodePath("../FootPrints")
 player_tscn = ExtResource("4_xfv01")
+
+[node name="Player" parent="GameManager" unique_id=1945730246 node_paths=PackedStringArray("camera", "border", "foot_step_node", "game_manager", "multiplayer_manager", "colliders_node") instance=ExtResource("4_xfv01")]
+z_index = 15
+position = Vector2(21, 21)
+camera = NodePath("../../Camera2D")
+border = NodePath("../../Border")
+foot_step_node = NodePath("../../FootPrints")
+game_manager = NodePath("..")
+multiplayer_manager = NodePath("../../MultiplayerManager")
+colliders_node = NodePath("../../Colliders")
+health = 0.0
 
 [node name="FootPrints" type="Node2D" parent="." unique_id=1416013855]
 z_index = 3
@@ -508,3 +532,55 @@ script = ExtResource("9_mx5c3")
 [node name="MultiplayerManager" type="Node" parent="." unique_id=1875156573]
 script = ExtResource("10_mmw6q")
 debug_logs_enabled = false
+
+[node name="Colliders" type="Node2D" parent="." unique_id=1914297383 node_paths=PackedStringArray("game_manager")]
+script = ExtResource("19_s2xj5")
+game_manager = NodePath("../GameManager")
+
+[node name="Campfire" type="Sprite2D" parent="Colliders" unique_id=300471796]
+z_index = 19
+texture_filter = 1
+position = Vector2(114, 348)
+scale = Vector2(2, 2)
+texture = ExtResource("22_7scts")
+metadata/Size = 32.0
+metadata/CollisionOffset = Vector2(0, 4)
+metadata/HideWhenOverPlayer = false
+
+[node name="Light" type="Sprite2D" parent="Colliders/Campfire" unique_id=1927815647]
+modulate = Color(0.8627451, 0.26666668, 0.11372549, 0.5019608)
+z_index = 18
+z_as_relative = false
+position = Vector2(0.7272726, 4.3636346)
+scale = Vector2(1.66, 1.66)
+texture = ExtResource("20_mjd0e")
+
+[node name="BasicTree" type="Sprite2D" parent="Colliders" unique_id=1383345069]
+z_index = 20
+y_sort_enabled = true
+texture_filter = 1
+position = Vector2(61, 68)
+scale = Vector2(2.75, 2.75)
+texture = ExtResource("19_1ilqr")
+metadata/size = 18.0
+metadata/CollisionOffset = Vector2(0, 17)
+metadata/HideWhenOverPlayer = true
+
+[node name="Shadow" type="Sprite2D" parent="Colliders/BasicTree" unique_id=1990486022]
+modulate = Color(0, 0, 0, 0.5019608)
+z_index = 19
+z_as_relative = false
+texture_filter = 1
+position = Vector2(2.1818182, 1.4545435)
+scale = Vector2(1, 0.85)
+skew = 0.2443461
+texture = ExtResource("19_1ilqr")
+metadata/size = 18.0
+
+[node name="Shadow2" type="Sprite2D" parent="Colliders/BasicTree" unique_id=1717097737]
+modulate = Color(0, 0, 0, 0.5019608)
+z_index = 14
+z_as_relative = false
+position = Vector2(0.7272726, 8.727271)
+scale = Vector2(0.47, 0.47)
+texture = ExtResource("20_mjd0e")

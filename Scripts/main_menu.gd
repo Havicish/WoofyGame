@@ -18,6 +18,7 @@ func _ready() -> void:
 
 func _on_host_button_pressed() -> void:
   game_manager.in_main_menu = false
+  game_manager.in_lobby_menu = true
   multiplayer_manager.start_as_host()
 
 func _on_join_button_pressed() -> void:
@@ -36,6 +37,7 @@ func _on_join_button_pressed() -> void:
 
   if joined:
     game_manager.in_main_menu = false
+    game_manager.in_lobby_menu = true
   else:
     room_code_input.text = ""
     room_code_input.placeholder_text = "Something went wrong"
