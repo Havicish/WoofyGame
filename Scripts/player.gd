@@ -43,7 +43,7 @@ func _ready() -> void:
 
   if multiplayer_manager:
     multiplayer_manager.subscribe_to_host_messages(func(_peer_id, message):
-      if multiplayer_manager.is_client and message["type"] == "player-move" and game_manager:
+      if multiplayer_manager.is_client and message["type"] == "player-move" and game_manager and message["peer_id"] != multiplayer_manager.own_peer_id:
         var player_node = game_manager.get_node_or_null(str(message["peer_id"]))
         if player_node:
           player_node.position = message["position"]
@@ -73,9 +73,8 @@ func _ready() -> void:
     multiplayer_manager.subscribe_to_started_hosting(func(_info):
       name = str(multiplayer_manager.own_peer_id)
     )
-    multiplayer_manager.subscribe_to_peer_join_room(func(info):
-      if info.joined_peer_id == multiplayer_manager.own_peer_id:
-        name = str(multiplayer_manager.own_peer_id)
+    multiplayer_manager.subscribe_to_join_room(func(_info):
+      name = str(multiplayer_manager.own_peer_id)
     )
 
 func _unhandled_input(event: InputEvent) -> void:

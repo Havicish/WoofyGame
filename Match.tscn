@@ -523,7 +523,6 @@ foot_step_node = NodePath("../../FootPrints")
 game_manager = NodePath("..")
 multiplayer_manager = NodePath("../../MultiplayerManager")
 colliders_node = NodePath("../../Colliders")
-health = 0.0
 
 [node name="FootPrints" type="Node2D" parent="." unique_id=1416013855]
 z_index = 3
