@@ -40,7 +40,7 @@ func _ready() -> void:
       "rotation": new_player.rotation,
       "scale": new_player.scale,
       "flip_h": new_player.flip_h
-    })
+    }, true)
 
     for peer_id in connected_peers:
       multiplayer_manager.send_to_all_clients({
@@ -50,7 +50,7 @@ func _ready() -> void:
         "rotation": new_player.rotation,
         "scale": new_player.scale,
         "flip_h": new_player.flip_h
-      })
+      }, true)
   )
 
   multiplayer_manager.subscribe_to_peer_leave_room(func(info):
@@ -82,7 +82,6 @@ func _ready() -> void:
   )
 
 func choose_wolves(wolf_count: int) -> void:
-  return
   for i in range(wolf_count):
     var peer_len = connected_peers.size()
     var wolf_index = randi() % peer_len
@@ -90,7 +89,7 @@ func choose_wolves(wolf_count: int) -> void:
     multiplayer_manager.send_to_all_clients({
       "type": "wolf-assigned",
       "peer_id": wolf_peer_id
-    })
+    }, true)
     var player_node = get_node_or_null(str(wolf_peer_id))
     print("Player node2: ", player_node)
     if player_node:

@@ -9,7 +9,14 @@ var host_peer_id: int = 0
 var current_room_code: String = ""
 
 @export var signaling_url: String = "ws://127.0.0.1:8080"
+@export var ice_servers: Array = [
+  {"urls": ["stun:stun.l.google.com:19302"]}
+]
 @export var debug_logs_enabled: bool = true
+@export var debug_log_to_console: bool = false
+@export var debug_log_to_file: bool = true
+@export var debug_log_file_path: String = "user://multiplayer_manager_debug.log"
+@export var debug_packet_drop_chance: float = 0.0
 
 var _socket: WebSocketPeer = WebSocketPeer.new()
 var _signal_connected: bool = false
@@ -33,6 +40,12 @@ var _started_hosting_subscribers: Array[Callable] = []
 var _join_room_subscribers: Array[Callable] = []
 var _peer_join_room_subscribers: Array[Callable] = []
 var _peer_leave_room_subscribers: Array[Callable] = []
+
+var _next_transport_message_id: int = 1
+var _pending_ack_messages: Dictionary = {}
+var _seen_transport_message_ids: Dictionary = {}
+var _expected_next_message_ids_by_peer: Dictionary = {}
+var _ordered_incoming_messages: Dictionary = {}
 
 
 func _ready() -> void:
@@ -58,6 +71,7 @@ func _process(_delta: float) -> void:
     rtc.poll()
 
   _flush_pending_peer_messages()
+  _retry_pending_ack_messages()
 
 
 func start_as_host():
@@ -154,7 +168,7 @@ func subscribe_to_peer_leave_room(callback: Callable) -> void:
   _peer_leave_room_subscribers.append(callback)
 
 
-func send_to_host(payload: Dictionary) -> bool:
+func send_to_host(payload: Dictionary, require_ack: bool = false) -> bool:
   if own_peer_id == 0 or not _signal_connected:
     _debug_log("send_to_host_blocked", {
       "reason": "not_ready",
@@ -185,15 +199,21 @@ func send_to_host(payload: Dictionary) -> bool:
     _drop_stale_peer_reference(host_peer_id)
     return false
 
-  _send_or_queue_peer_message(host_peer_id, "to_host", payload)
+  var final_payload := payload
+  if require_ack:
+    final_payload = _wrap_transport_message(payload, true)
+    _register_pending_ack(host_peer_id, "to_host", final_payload)
+
+  _send_or_queue_peer_message(host_peer_id, "to_host", final_payload)
   _debug_log("send_to_host_accepted", {
     "host_peer_id": host_peer_id,
-    "payload_type": str(payload.get("type", ""))
+    "payload_type": str(payload.get("type", "")),
+    "require_ack": require_ack
   })
   return true
 
 
-func send_to_client(client_peer_id: int, payload: Dictionary) -> bool:
+func send_to_client(client_peer_id: int, payload: Dictionary, require_ack: bool = false) -> bool:
   if own_peer_id == 0 or not _signal_connected:
     _debug_log("send_to_client_blocked", {
       "reason": "not_ready",
@@ -224,15 +244,21 @@ func send_to_client(client_peer_id: int, payload: Dictionary) -> bool:
     _drop_stale_peer_reference(client_peer_id)
     return false
 
-  _send_or_queue_peer_message(client_peer_id, "to_client", payload)
+  var final_payload := payload
+  if require_ack:
+    final_payload = _wrap_transport_message(payload, true)
+    _register_pending_ack(client_peer_id, "to_client", final_payload)
+
+  _send_or_queue_peer_message(client_peer_id, "to_client", final_payload)
   _debug_log("send_to_client_accepted", {
     "target_peer_id": client_peer_id,
-    "payload_type": str(payload.get("type", ""))
+    "payload_type": str(payload.get("type", "")),
+    "require_ack": require_ack
   })
   return true
 
 
-func send_to_all_clients(payload: Dictionary) -> bool:
+func send_to_all_clients(payload: Dictionary, require_ack: bool = false) -> bool:
   if own_peer_id == 0 or not _signal_connected:
     _debug_log("send_to_all_clients_blocked", {
       "reason": "not_ready",
@@ -264,7 +290,12 @@ func send_to_all_clients(payload: Dictionary) -> bool:
       stale_peer_ids.append(target_peer_id)
       continue
 
-    _send_or_queue_peer_message(target_peer_id, "to_client", payload)
+    var final_payload := payload
+    if require_ack:
+      final_payload = _wrap_transport_message(payload, true)
+      _register_pending_ack(target_peer_id, "to_client", final_payload)
+
+    _send_or_queue_peer_message(target_peer_id, "to_client", final_payload)
     sent_any = true
 
   for stale_id in stale_peer_ids:
@@ -273,7 +304,8 @@ func send_to_all_clients(payload: Dictionary) -> bool:
   _debug_log("send_to_all_clients_done", {
     "sent_any": sent_any,
     "targets": _webrtc_peers.keys(),
-    "payload_type": str(payload.get("type", ""))
+    "payload_type": str(payload.get("type", "")),
+    "require_ack": require_ack
   })
 
   return sent_any
@@ -318,6 +350,146 @@ func _drop_stale_peer_reference(remote_peer_id: int) -> void:
   _debug_log("dropped_stale_peer", {
     "peer_id": remote_peer_id
   })
+
+
+func _generate_transport_message_id() -> int:
+  var message_id := _next_transport_message_id
+  _next_transport_message_id += 1
+  return message_id
+
+
+func _wrap_transport_message(payload: Dictionary, require_ack: bool) -> Dictionary:
+  var wrapped := payload.duplicate(true)
+  wrapped["__msg_id__"] = _generate_transport_message_id()
+  wrapped["__ack_required__"] = require_ack
+  return wrapped
+
+
+func _strip_transport_metadata(payload: Dictionary) -> Dictionary:
+  var cleaned := payload.duplicate(true)
+  cleaned.erase("__msg_id__")
+  cleaned.erase("__ack_required__")
+  cleaned.erase("__ack__")
+  return cleaned
+
+
+func _register_pending_ack(target_peer_id: int, route: String, payload: Dictionary) -> void:
+  var message_id := int(payload.get("__msg_id__", -1))
+  if message_id < 0:
+    return
+
+  _pending_ack_messages[message_id] = {
+    "target_peer_id": target_peer_id,
+    "route": route,
+    "payload": payload,
+    "retries": 0
+  }
+
+
+func _mark_message_seen(from_peer_id: int, message_id: int) -> bool:
+  if message_id < 0:
+    return false
+
+  if not _seen_transport_message_ids.has(from_peer_id):
+    _seen_transport_message_ids[from_peer_id] = []
+
+  var seen_ids: Array = _seen_transport_message_ids[from_peer_id]
+  if seen_ids.has(message_id):
+    return true
+
+  seen_ids.append(message_id)
+  if seen_ids.size() > 200:
+    seen_ids = seen_ids.slice(seen_ids.size() - 200, seen_ids.size())
+  _seen_transport_message_ids[from_peer_id] = seen_ids
+  return false
+
+
+func _deliver_incoming_payload(sender_peer_id: int, payload: Dictionary, subscribers: Array[Callable]) -> void:
+  var cleaned_payload := _strip_transport_metadata(payload)
+  _debug_log("rpc_payload_delivered", {
+    "from_peer_id": sender_peer_id,
+    "payload_type": str(cleaned_payload.get("type", "")),
+    "message_id": int(payload.get("__msg_id__", -1))
+  })
+  _notify_peer_message_subscribers(subscribers, sender_peer_id, cleaned_payload)
+
+
+func _queue_ordered_transport_message(sender_peer_id: int, message_id: int, payload: Dictionary, subscribers: Array[Callable]) -> bool:
+  if message_id < 0:
+    _deliver_incoming_payload(sender_peer_id, payload, subscribers)
+    return true
+
+  var expected_id := int(_expected_next_message_ids_by_peer.get(sender_peer_id, 1))
+  if message_id < expected_id:
+    _debug_log("rpc_message_older_than_expected_dropped", {
+      "peer_id": sender_peer_id,
+      "message_id": message_id,
+      "expected_id": expected_id,
+      "payload_type": str(payload.get("type", ""))
+    })
+    return false
+
+  if not _ordered_incoming_messages.has(sender_peer_id):
+    _ordered_incoming_messages[sender_peer_id] = {}
+
+  var pending: Dictionary = _ordered_incoming_messages[sender_peer_id]
+  pending[message_id] = payload
+  _ordered_incoming_messages[sender_peer_id] = pending
+
+  while pending.has(expected_id):
+    var next_payload: Dictionary = pending.get(expected_id, {})
+    pending.erase(expected_id)
+    _deliver_incoming_payload(sender_peer_id, next_payload, subscribers)
+    expected_id += 1
+
+  _expected_next_message_ids_by_peer[sender_peer_id] = expected_id
+  if pending.is_empty():
+    _ordered_incoming_messages.erase(sender_peer_id)
+  else:
+    _ordered_incoming_messages[sender_peer_id] = pending
+
+  return true
+
+
+func _handle_ack_received(remote_peer_id: int, message_id: int) -> void:
+  _pending_ack_messages.erase(message_id)
+  _debug_log("ack_received", {
+    "peer_id": remote_peer_id,
+    "message_id": message_id
+  })
+
+
+func _retry_pending_ack_messages() -> void:
+  if _pending_ack_messages.is_empty():
+    return
+
+  var pending_ids: Array = _pending_ack_messages.keys()
+  for message_id in pending_ids:
+    var pending: Dictionary = _pending_ack_messages.get(int(message_id), {})
+    if pending.is_empty():
+      _pending_ack_messages.erase(message_id)
+      continue
+
+    var target_peer_id := int(pending.get("target_peer_id", 0))
+    var route := str(pending.get("route", "to_client"))
+    var payload: Dictionary = pending.get("payload", {})
+    var retries := int(pending.get("retries", 0))
+
+    if target_peer_id == 0 or not _has_mesh_peer(target_peer_id):
+      continue
+
+    if retries >= 20:
+      _pending_ack_messages.erase(message_id)
+      _debug_log("ack_retry_exhausted", {
+        "message_id": message_id,
+        "target_peer_id": target_peer_id,
+        "payload_type": str(payload.get("type", ""))
+      })
+      continue
+
+    _send_or_queue_peer_message(target_peer_id, route, payload)
+    pending["retries"] = retries + 1
+    _pending_ack_messages[int(message_id)] = pending
 
 
 func _send_or_queue_peer_message(target_peer_id: int, route: String, payload: Dictionary) -> void:
@@ -368,6 +540,15 @@ func _send_routed_peer_message(target_peer_id: int, route: String, payload: Dict
     })
     return false
 
+  if debug_packet_drop_chance > 0.0 && randf() < debug_packet_drop_chance:
+    _debug_log("send_routed_dropped_debug", {
+      "target_peer_id": target_peer_id,
+      "route": route,
+      "payload_type": str(payload.get("type", "")),
+      "drop_chance": debug_packet_drop_chance
+    })
+    return false
+
   _debug_log("send_routed", {
     "target_peer_id": target_peer_id,
     "route": route,
@@ -383,10 +564,23 @@ func _send_routed_peer_message(target_peer_id: int, route: String, payload: Dict
 
 func _is_peer_connected(remote_peer_id: int) -> bool:
   if not _webrtc_peers.has(remote_peer_id):
+    _debug_log("peer_connected_check_missing", {
+      "remote_peer_id": remote_peer_id
+    })
     return false
 
   var rtc: WebRTCPeerConnection = _webrtc_peers[remote_peer_id]
-  return rtc.get_connection_state() == WebRTCPeerConnection.STATE_CONNECTED and _is_rpc_target_available(remote_peer_id)
+  var state := rtc.get_connection_state()
+  var connected := state == WebRTCPeerConnection.STATE_CONNECTED and _is_rpc_target_available(remote_peer_id)
+
+  if state != WebRTCPeerConnection.STATE_CONNECTED:
+    _debug_log("peer_connection_state", {
+      "remote_peer_id": remote_peer_id,
+      "state": _get_peer_connection_state_name(remote_peer_id),
+      "rpc_target_available": _is_rpc_target_available(remote_peer_id)
+    })
+
+  return connected
 
 
 func _flush_pending_peer_messages() -> void:
@@ -489,7 +683,8 @@ func _handle_server_message(raw_message: String) -> void:
   var msg: Dictionary = data
   var msg_type: String = str(msg.get("type", ""))
   _debug_log("server_message", {
-    "type": msg_type
+    "type": msg_type,
+    "payload": msg
   })
 
   match msg_type:
@@ -612,16 +807,34 @@ func _setup_webrtc_mesh() -> void:
   multiplayer.multiplayer_peer = peer
 
 
+func _build_ice_config() -> Dictionary:
+  var config: Dictionary = {"iceServers": []}
+  for entry in ice_servers:
+    if typeof(entry) != TYPE_DICTIONARY:
+      continue
+
+    var normalized_entry: Dictionary = {}
+    var urls: Variant = entry.get("urls", [])
+    if typeof(urls) == TYPE_ARRAY:
+      normalized_entry["urls"] = urls
+    elif typeof(urls) == TYPE_STRING:
+      normalized_entry["urls"] = [urls]
+
+    if normalized_entry.has("urls"):
+      config["iceServers"].append(normalized_entry)
+
+  if config["iceServers"].is_empty():
+    config["iceServers"] = [{"urls": ["stun:stun.l.google.com:19302"]}]
+
+  return config
+
+
 func _ensure_peer_connection(remote_peer_id: int, create_offer: bool = false) -> void:
   if _webrtc_peers.has(remote_peer_id):
     return
 
   var rtc := WebRTCPeerConnection.new()
-  var config := {
-    "iceServers": [
-      {"urls": ["stun:stun.l.google.com:19302"]}
-    ]
-  }
+  var config := _build_ice_config()
 
   var init_err := rtc.initialize(config)
   if init_err != OK:
@@ -677,20 +890,44 @@ func _handle_signal_payload(msg: Dictionary) -> void:
   var payload: Dictionary = msg.get("data", {})
   var signal_type: String = str(payload.get("type", ""))
 
+  _debug_log("signal_payload_received", {
+    "from_peer_id": from_peer_id,
+    "signal_type": signal_type,
+    "payload_keys": payload.keys()
+  })
+
   if signal_type == "offer":
     _ensure_peer_connection(from_peer_id, false)
 
   if not _webrtc_peers.has(from_peer_id):
+    _debug_log("signal_payload_missing_peer", {
+      "from_peer_id": from_peer_id,
+      "signal_type": signal_type
+    })
     return
 
   var rtc: WebRTCPeerConnection = _webrtc_peers[from_peer_id]
 
   match signal_type:
     "offer":
+      _debug_log("setting_remote_offer", {
+        "from_peer_id": from_peer_id,
+        "sdp_length": str(payload.get("sdp", "")).length()
+      })
       rtc.set_remote_description("offer", str(payload.get("sdp", "")))
     "answer":
+      _debug_log("setting_remote_answer", {
+        "from_peer_id": from_peer_id,
+        "sdp_length": str(payload.get("sdp", "")).length()
+      })
       rtc.set_remote_description("answer", str(payload.get("sdp", "")))
     "ice":
+      _debug_log("adding_ice_candidate", {
+        "from_peer_id": from_peer_id,
+        "candidate_name": str(payload.get("name", "")),
+        "media": str(payload.get("media", "")),
+        "index": int(payload.get("index", 0))
+      })
       rtc.add_ice_candidate(
         str(payload.get("media", "")),
         int(payload.get("index", 0)),
@@ -702,13 +939,18 @@ func _handle_signal_payload(msg: Dictionary) -> void:
 
 func _on_session_description_created(type: String, sdp: String, remote_peer_id: int) -> void:
   if not _webrtc_peers.has(remote_peer_id):
+    _debug_log("session_description_missing_peer", {
+      "remote_peer_id": remote_peer_id,
+      "type": type
+    })
     return
 
   var rtc: WebRTCPeerConnection = _webrtc_peers[remote_peer_id]
   rtc.set_local_description(type, sdp)
   _debug_log("session_description_created", {
     "remote_peer_id": remote_peer_id,
-    "type": type
+    "type": type,
+    "sdp_length": sdp.length()
   })
 
   _send_signal({
@@ -725,7 +967,8 @@ func _on_ice_candidate_created(media: String, index: int, candidate_name: String
   _debug_log("ice_candidate_created", {
     "remote_peer_id": remote_peer_id,
     "media": media,
-    "index": index
+    "index": index,
+    "candidate_name": candidate_name
   })
   _send_signal({
     "type": "signal",
@@ -748,11 +991,36 @@ func _rpc_receive_from_client(payload: Dictionary) -> void:
     return
 
   var sender_peer_id := multiplayer.get_remote_sender_id()
+  var ack_required := bool(payload.get("__ack_required__", false))
+  var message_id := int(payload.get("__msg_id__", -1))
+
+  if bool(payload.get("__ack__", false)):
+    _handle_ack_received(sender_peer_id, int(payload.get("__msg_id__", -1)))
+    return
+
+  if message_id >= 0 and _mark_message_seen(sender_peer_id, message_id):
+    _debug_log("rpc_message_duplicate_dropped", {
+      "peer_id": sender_peer_id,
+      "message_id": message_id,
+      "payload_type": str(payload.get("type", ""))
+    })
+    return
+
+  if ack_required and message_id >= 0:
+    _send_ack_to_peer(sender_peer_id, "to_host", message_id)
+
+  if message_id >= 0:
+    if not _queue_ordered_transport_message(sender_peer_id, message_id, payload, _client_message_subscribers):
+      return
+  else:
+    _deliver_incoming_payload(sender_peer_id, payload, _client_message_subscribers)
+
   _debug_log("rpc_from_client_received", {
     "from_peer_id": sender_peer_id,
-    "payload_type": str(payload.get("type", ""))
+    "payload_type": str(payload.get("type", "")),
+    "ack_required": ack_required,
+    "message_id": message_id
   })
-  _notify_peer_message_subscribers(_client_message_subscribers, sender_peer_id, payload)
 
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -772,11 +1040,44 @@ func _rpc_receive_from_host(payload: Dictionary) -> void:
     })
     return
 
+  var ack_required := bool(payload.get("__ack_required__", false))
+  var message_id := int(payload.get("__msg_id__", -1))
+
+  if bool(payload.get("__ack__", false)):
+    _handle_ack_received(sender_peer_id, int(payload.get("__msg_id__", -1)))
+    return
+
+  if message_id >= 0 and _mark_message_seen(sender_peer_id, message_id):
+    _debug_log("rpc_message_duplicate_dropped", {
+      "peer_id": sender_peer_id,
+      "message_id": message_id,
+      "payload_type": str(payload.get("type", ""))
+    })
+    return
+
+  if ack_required and message_id >= 0:
+    _send_ack_to_peer(sender_peer_id, "to_client", message_id)
+
+  if message_id >= 0:
+    if not _queue_ordered_transport_message(sender_peer_id, message_id, payload, _host_message_subscribers):
+      return
+  else:
+    _deliver_incoming_payload(sender_peer_id, payload, _host_message_subscribers)
+
   _debug_log("rpc_from_host_received", {
     "from_peer_id": sender_peer_id,
-    "payload_type": str(payload.get("type", ""))
+    "payload_type": str(payload.get("type", "")),
+    "ack_required": ack_required,
+    "message_id": message_id
   })
-  _notify_peer_message_subscribers(_host_message_subscribers, sender_peer_id, payload)
+
+
+func _send_ack_to_peer(target_peer_id: int, route: String, message_id: int) -> void:
+  var ack_payload := {
+    "__ack__": true,
+    "__msg_id__": message_id
+  }
+  _send_or_queue_peer_message(target_peer_id, route, ack_payload)
 
 
 func _notify_peer_message_subscribers(subscribers: Array[Callable], from_peer_id: int, payload: Dictionary) -> void:
@@ -820,8 +1121,28 @@ func _get_peer_connection_state_name(remote_peer_id: int) -> String:
       return "unknown"
 
 
+func _write_debug_line_to_file(line: String) -> void:
+  if not debug_log_to_file:
+    return
+
+  var file := FileAccess.open(debug_log_file_path, FileAccess.READ_WRITE)
+  if file == null:
+    file = FileAccess.open(debug_log_file_path, FileAccess.WRITE)
+
+  if file == null:
+    return
+
+  file.seek_end()
+  file.store_line(line)
+  file.flush()
+
+
 func _debug_log(event: String, details: Dictionary = {}) -> void:
   if not debug_logs_enabled:
     return
 
-  print("[multiplayer_manager] ", event, " ", details)
+  var line := "[%s] [multiplayer_manager] %s %s" % [Time.get_datetime_string_from_system(), event, details]
+  if debug_log_to_console:
+    print(line)
+
+  _write_debug_line_to_file(line)

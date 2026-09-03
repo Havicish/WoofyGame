@@ -18,10 +18,12 @@
 [ext_resource type="StyleBox" uid="uid://bn4sgh0yu1wtm" path="res://Resources/rounded_box.tres" id="11_3u3i7"]
 [ext_resource type="PackedScene" uid="uid://bteilxdrrs47q" path="res://player_card.tscn" id="12_ck5pg"]
 [ext_resource type="Texture2D" uid="uid://b1ebvnpdt8ytd" path="res://Sprites/PlayerTest (1).png" id="13_qness"]
+[ext_resource type="StyleBox" uid="uid://6kkclm7bk0fy" path="res://Resources/ability_background.tres" id="14_efrhc"]
 [ext_resource type="Texture2D" uid="uid://dhqdptxrkshyn" path="res://Sprites/Tree.png" id="19_1ilqr"]
 [ext_resource type="Script" uid="uid://c3ukm6ar5kb55" path="res://Scripts/colliders.gd" id="19_s2xj5"]
 [ext_resource type="Texture2D" uid="uid://dajsfp26xphap" path="res://Sprites/Shadow.png" id="20_mjd0e"]
 [ext_resource type="Texture2D" uid="uid://d2n1yqvm7y6f1" path="res://Sprites/Campfire.png" id="22_7scts"]
+[ext_resource type="Script" uid="uid://bfbjdykrrs4bn" path="res://Scripts/hitbox_manager.gd" id="23_ulqok"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_3h6po"]
 particle_flag_disable_z = true
@@ -117,6 +119,7 @@ zoom = Vector2(6.6, 6.6)
 [node name="CanvasLayer" type="CanvasLayer" parent="Camera2D" unique_id=2046636335]
 
 [node name="MainMenu" type="Control" parent="Camera2D/CanvasLayer" unique_id=471586710 node_paths=PackedStringArray("game_manager", "multiplayer_manager")]
+visible = false
 z_index = 101
 layout_mode = 3
 anchors_preset = 15
@@ -262,6 +265,7 @@ multiplayer_manager = NodePath("../../../MultiplayerManager")
 player_card_tscn = ExtResource("12_ck5pg")
 
 [node name="Background" type="Panel" parent="Camera2D/CanvasLayer/Lobby" unique_id=1279551414]
+visible = false
 z_index = -1
 layout_mode = 1
 anchors_preset = 15
@@ -468,12 +472,10 @@ alignment = 1
 max_length = 14
 
 [node name="GameHUD" type="Control" parent="Camera2D/CanvasLayer" unique_id=334466289]
-visible = false
 layout_mode = 3
 anchors_preset = 0
-offset_top = -5.9999995
 offset_right = 40.0
-offset_bottom = 34.0
+offset_bottom = 40.0
 
 [node name="RoomCode" type="Label" parent="Camera2D/CanvasLayer/GameHUD" unique_id=279190319]
 z_index = 120
@@ -501,6 +503,13 @@ offset_transform_position = Vector2(2, 2)
 text = "Room code: ??????"
 label_settings = SubResource("LabelSettings_e6e4d")
 vertical_alignment = 1
+
+[node name="Panel" type="Panel" parent="Camera2D/CanvasLayer/GameHUD" unique_id=94900246]
+visible = false
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_styles/panel = ExtResource("14_efrhc")
 
 [node name="Border" type="Sprite2D" parent="." unique_id=10000236]
 z_index = 2
@@ -543,7 +552,6 @@ script = ExtResource("9_mx5c3")
 
 [node name="MultiplayerManager" type="Node" parent="." unique_id=1875156573]
 script = ExtResource("10_mmw6q")
-debug_logs_enabled = false
 
 [node name="Colliders" type="Node2D" parent="." unique_id=1914297383 node_paths=PackedStringArray("game_manager")]
 script = ExtResource("19_s2xj5")
@@ -596,3 +604,7 @@ z_as_relative = false
 position = Vector2(0.7272726, 8.727271)
 scale = Vector2(0.47, 0.47)
 texture = ExtResource("20_mjd0e")
+
+[node name="HitboxManager" type="Node" parent="." unique_id=126553209 node_paths=PackedStringArray("multiplayer_manager")]
+script = ExtResource("23_ulqok")
+multiplayer_manager = NodePath("../MultiplayerManager")

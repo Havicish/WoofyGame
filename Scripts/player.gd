@@ -117,6 +117,19 @@ func update_non_client() -> void:
     foot_step_node.create_foot_print(preload("res://Sprites/Footstep.png"), position + Vector2(0, 8), Vector2(0.75, 0.75), 7.5)
   last_rotation = rotation
 
+  if in_wolf_form:
+    clothes.visible = false
+    texture = preload("res://Sprites/Woof.png")
+  else:
+    clothes.visible = true
+    texture = preload("res://Sprites/PlayerTest (1).png")
+
+  if health <= 0.0:
+    rotation = PI / 2
+    modulate = Color(1, 0.5, 0.5, 1)
+    var init_size = scale
+    scale = Vector2(init_size.x * 0.75, init_size.y)
+
 
 func update_multiplayer_state() -> void:
   if multiplayer_manager and multiplayer_manager.is_connected:
@@ -218,19 +231,6 @@ func _physics_process(delta: float) -> void:
   shadow.flip_h = flip_h
 
   clothes.modulate = clothes_color
-
-  if health <= 0.0:
-    rotation = PI / 2
-    modulate = Color(1, 0.5, 0.5, 1)
-    var init_size = scale
-    scale = Vector2(init_size.x * 0.75, init_size.y)
-
-  if in_wolf_form:
-    clothes.visible = false
-    texture = preload("res://Sprites/Woof.png")
-  else:
-    clothes.visible = true
-    texture = preload("res://Sprites/PlayerTest (1).png")
 
   if camera and border:
     var border_size: Vector2 = border.texture.get_size() * border.scale

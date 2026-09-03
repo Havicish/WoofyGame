@@ -102,7 +102,7 @@ func _ready() -> void:
       multiplayer_manager.send_to_all_clients({
         "type": "player-ready",
         "peer_id": message["peer_id"]
-      })
+      }, true)
     elif multiplayer_manager.is_host and message["type"] == "player-unready":
       var player_card = get_node("PlayerList").get_node("ScrollContainer").get_node("VBoxContainer").get_node_or_null(str(message["peer_id"]))
       if player_card:
@@ -111,7 +111,7 @@ func _ready() -> void:
       multiplayer_manager.send_to_all_clients({
         "type": "player-unready",
         "peer_id": message["peer_id"]
-      })
+      }, true)
     elif multiplayer_manager.is_host and message["type"] == "player-name-change":
       var player_card = get_node("PlayerList").get_node("ScrollContainer").get_node("VBoxContainer").get_node_or_null(str(message["peer_id"]))
       if player_card:
@@ -123,7 +123,7 @@ func _ready() -> void:
         "type": "player-name-change",
         "peer_id": message["peer_id"],
         "new_name": message["new_name"]
-      })
+      }, true)
   )
 
   multiplayer_manager.subscribe_to_peer_join_room(func(info):
@@ -137,7 +137,7 @@ func _ready() -> void:
       "type": "player-join",
       "joined_peer_id": info.joined_peer_id,
       "is_host": false
-    })
+    }, true)
 
     for card in player_cards:
       var card_peer_id := int(str(card.name))
@@ -157,7 +157,7 @@ func _ready() -> void:
     multiplayer_manager.send_to_all_clients({
       "type": "player-leave",
       "left_peer_id": info.left_peer_id
-    })
+    }, true)
   )
 
 
@@ -168,13 +168,13 @@ func _on_name_input_text_changed(new_text: String) -> void:
       "peer_id": multiplayer_manager.own_peer_id,
       "new_name": new_text,
       "is_host": true
-    })
+    }, true)
   else:
     multiplayer_manager.send_to_host({
       "type": "player-name-change",
       "peer_id": multiplayer_manager.own_peer_id,
       "new_name": new_text
-    })
+    }, true)
   var own_player_card = get_node("PlayerList").get_node("ScrollContainer").get_node("VBoxContainer").get_node_or_null(str(multiplayer_manager.own_peer_id))
   if own_player_card:
     if new_text.strip_edges() == "":
@@ -191,7 +191,7 @@ func _on_ready_button_pressed() -> void:
 
     multiplayer_manager.send_to_all_clients({
       "type": "game-started"
-    })
+    }, true)
 
     game_manager.start_game(true)
   else:
@@ -201,14 +201,14 @@ func _on_ready_button_pressed() -> void:
       multiplayer_manager.send_to_host({
         "type": "player-ready",
         "peer_id": multiplayer_manager.own_peer_id
-      })
+      }, true)
     else:
       ready_label.text = "ready"
 
       multiplayer_manager.send_to_host({
         "type": "player-unready",
         "peer_id": multiplayer_manager.own_peer_id
-      })
+      }, true)
 
 
 func _process(_delta: float) -> void:
